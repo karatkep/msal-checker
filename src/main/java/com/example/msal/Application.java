@@ -1,40 +1,42 @@
 package com.example.msal;
 
-import java.util.Map;
-
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 
 public class Application {
 
+    private TokenCredentialBuilder tokenCredentialBuilder = new TokenCredentialBuilder();
+
     public static void main(String[] args) throws InterruptedException {
+        new Application().run();
+    }
+
+    private void run() throws InterruptedException {
         printEnvVars();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             try {
                 check();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Thread.sleep(60000);
+            Thread.currentThread().sleep(60000);
         }
     }
 
-    private static void printEnvVars() {
+    private void printEnvVars() {
         System.out.println("Env vars:");
         System.getenv().entrySet().stream().forEach(e-> System.out.println("  " + e));
     }
 
-    private static void check() {
+    private void check() {
         String keyvaultURL = System.getenv().get("KEYVAULT_URL");
         String secretName = System.getenv().get("SECRET_NAME");
 
-        System.out.println("Building secretClient");
         SecretClient secretClient = new SecretClientBuilder()
             .vaultUrl(keyvaultURL)
-            .credential(new TokenCredentialBuilder().buildTokenCredential())
+            .credential(tokenCredentialBuilder.buildTokenCredential())
             .buildClient();
-        System.out.println("Getting secret");
         KeyVaultSecret secret = secretClient.getSecret(secretName);
         System.out.println("Successfully got secret, secret = " + secret.getValue());
     }
